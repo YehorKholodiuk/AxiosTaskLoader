@@ -1,24 +1,93 @@
-import logo from './logo.svg';
-import './App.css';
+import axios from 'axios';
+import React, { useState } from 'react';
+
+// server https://taskapp-serv.herokuapp.com/
 
 function App() {
+
+  const [tasks, setTasks] = useState([]);
+  const [formData, setFormData] = useState({});
+
+  const onLoadAll = () => {
+    axios({
+      url: 'https://taskapp-serv.herokuapp.com/v1/task/search',
+      method: 'POST',
+    })
+        .then((response) => {
+              setTasks(response.data);
+            }
+        ).catch((err) => {
+          console.log(err);
+        }
+    );
+
+  };
+
+  // create task
+  const onCreate = (e) => {
+    e.preventDefault();
+    axios({
+      url: 'https://taskapp-serv.herokuapp.com/v1/task',
+      method: 'POST',
+      data: formData,
+    })
+        .then(() => {
+              onLoadAll();
+            }
+        ).catch((err) => {
+          console.log(err);
+        }
+    );
+  };
+
+  const onChangeForm = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+
+  const onDelete = (id) => {
+    axios({
+      url: `https://taskapp-serv.herokuapp.com/v1/task/${id}`,
+      method: 'DELETE',
+    })
+        .then(() => {
+              onLoadAll();
+            }
+        ).catch((err) => {
+          console.log(err);
+        }
+    );
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+      <div>
+
+        <button onClick={onLoadAll}>Load all tasks</button>
+
+        <ul>
+          {tasks.map((task) => (
+              <li key={task.id}>
+                ({task.id}) <strong>{task.title}</strong>{' '}<span>{task.description}</span>
+
+                <button onClick={() => onDelete(task.id)}>Delete</button>
+              </li>
+          ))}
+        </ul>
+
+
+        <hr />
+        <h4>Create task</h4>
+        <form onChange={onChangeForm} onSubmit={onCreate}>
+          <input type="text" placeholder="Title" name="title" />
+          <input type="text" placeholder="Description" name="description" />
+          <button type="submit">Create</button>
+        </form>
+
+
+      </div>
   );
 }
 
